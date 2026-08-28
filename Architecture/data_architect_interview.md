@@ -11,7 +11,8 @@
   | Bronze | Raw data "as arrived"                | Almost none                      | Data engineers (replay, debug)        | Parquet / Avro / JSON on object store |
   | Silver | Cleansed, conformed, lightly modeled | Good quality, enforced types     | Analysts, data scientists,            | Delta / Iceberg / Hudi tables         |
   | Gold   | Aggregated, business-ready, dimensional models | High quality, governed | BI tools, executives, Apps, AI agents | Same open formats / semantic layer    |
-- Platform-level Architectural Paradigms
+
+- __Platform-level Architectural Paradigms__
   - __Data Lakehouse__ (currently the fastest-growing pattern)
     - One copy of data (usually on object storage)
     - Open table format (Iceberg, Delta Lake, Hudi most popular in 2026)
@@ -389,6 +390,24 @@ Data versioning is the process of tracking and storing changes to datasets over 
 AWS Options for Data Versioning:
 - Object Storage Versioning: Amazon S3 Versioning
 
+### Migrate Data Lake into Data Lakehouse 
+
+You progressively add a transactional table layer, governance, data-quality controls, and better data pipelines on top of your existing object storage.
+
+Steps:
+- Inventory the existing lake
+- Choose your lakehouse technology 
+  - delta lake vs Iceberg
+  - Trino vs Athena vs DataBricks
+- Design the target architecture
+- Rebuild the pipelines
+  - you want pipelines that process new or changed data, rather than rebuilding entire tables every night
+- Add governance:
+  - ownership
+  - access control
+  - data classification
+  - lineage
+  - quality
 
 ## Governance, Security, Compliance
 
@@ -414,6 +433,20 @@ AWS Options for Data Versioning:
 ### SLAs
 
 ### Tools (Great Expectations, Monte Carlo, etc.)
+
+
+
+## AI
+
+### How would you design an agentic AI platform?
+
+Separate the platform into planes:
+- Experience plane: how users interact with it: API, chat, Notebook?
+- Agent runtime plane
+- Model plane: model management
+- Data plane: agents with capabilities: search , sql, apis
+- Memory plane: RAG, Vector Search, Experiment history
+- Control plane: Authorization, Authentication, Observability, Augit, Cost management, Governance
 
 
 
