@@ -8,8 +8,28 @@
 - The exception is __FULL JOIN__, which returns all rows from __both tables__.
 
 - INNER JOIN: Returns only matching rows from both tables
-- LEFT JOIN: Returns all rows from the left table + matches from the right
+- LEFT JOIN = LEFT OUTER JOIN: Returns all rows from the left table + matches from the right
 - FULL OUTER JOIN: Returns everything from both tables, matched where possible
+
+```
+Join                | What it returns
+--------------------+--------
+INNER JOIN          | Only matching rows
+FULL OUTER JOIN	    | All rows from both tables
+LEFT JOIN           | All rows from the left table + matches from right
+RIGHT JOIN	        | All rows from the right table + matches from left
+```
+
+Inner join:
+```
+SELECT
+    customers.name,
+    orders.product
+FROM customers
+INNER JOIN orders
+    ON customers.customer_id = orders.customer_id;
+```
+- returns only customer.name and orders.product that exist in BOTH tables
 
 Left join:
 ```
@@ -26,7 +46,7 @@ ON fp.national_team_id = nt.id
 ORDER BY fp.id;
 ```
 
-Example 2:
+Left join = left outer join on 3 tables
 ```
 SELECT
     c.customer_id,
@@ -44,6 +64,19 @@ LEFT OUTER JOIN payments p
 - Returns all customers
 - If a customer has no orders → order_* columns = NULL
 - If an order has no payment → payment_* columns = NULL
+
+FULL OUTER JOIN
+```
+SELECT
+    c.name,
+    o.order_id,
+    o.product
+FROM customers AS c
+FULL OUTER JOIN orders AS o
+    ON c.customer_id = o.customer_id;
+```
+- keeps all rows from both tables, even when there is no match
+- returns customer.name and orders.product that match or no match from both tables
 
 ### ON vs WHERE in LEFT JOIN
 
@@ -262,6 +295,44 @@ https://www.windowfunctions.com
 
 ## Interview Questions
 
+### Advanced JOIN
+
+employees:
+```
+employee_id	name	department_id	salary
+1	Alice	10	90000
+2	Bob	10	70000
+3	Charlie	20	80000
+4	David	20	60000
+5	Eve	30	95000
+```
+
+departments:
+```
+department_id	department_name
+10	Engineering
+20	Finance
+30	HR
+```
+
+Write a SQL query to find employees who earn more than the average salary of their own department.
+
+Answer:
+```
+WITH average_sal_dept AS (
+    SELECT department_id, AVG(salary) AS avg_salary
+    FROM employees
+    GROUP BY department_id
+)
+SELECT e.employee_id, e.name, e.salary, asd.avg_salary
+FROM employees e
+INNER JOIN average_sal_dept asd
+    ON asd.department_id = e.department_id
+WHERE e.salary > asd.avg_salary;
+
+```
+
+
 ### UPDATE from a SELECT statement
 
 ```
@@ -270,9 +341,7 @@ SET
 Per.PersonCityName=Addr.City, 
 Per.PersonPostCode=Addr.PostCode
 FROM Persons Per
-INNER JOIN
-AddressList Addr
-ON Per.PersonId = Addr.PersonId
+INNER JOIN AddressList Addr ON Per.PersonId = Addr.PersonId
 ```
 
 ```
@@ -319,6 +388,62 @@ GROUP BY department
 HAVING AVG(salary) < 5500;
 ```
 
+### CTE Question
+
+Employees table:
+```
+employee_id	employee_name	manager_id	salary
+1	CEO	NULL	200000
+2	Alice	1	150000
+3	Bob	1	140000
+4	Charlie	2	100000
+5	David	2	90000
+6	Eve	4	70000
+7	Frank	3	80000
+```
+
+Write a recursive CTE that returns every employee along with: employee_name, manager_name, level, hierarchy_path
+
+Answer:
+```
+WITH RECURSIVE employee_hierarchy AS (
+
+    -- Anchor: top-level employees
+    SELECT
+        e.employee_id,
+        e.employee_name,
+        e.manager_id,
+        CAST(NULL AS VARCHAR(100)) AS manager_name,
+        0 AS level,
+        CAST(e.employee_name AS VARCHAR(1000)) AS hierarchy_path
+    FROM employees e
+    WHERE e.manager_id IS NULL
+
+    UNION ALL
+
+    -- Recursive: find employees reporting to each employee
+    SELECT
+        e.employee_id,
+        e.employee_name,
+        e.manager_id,
+        eh.employee_name AS manager_name,
+        eh.level + 1 AS level,
+        CONCAT(eh.hierarchy_path, ' → ', e.employee_name) AS hierarchy_path
+    FROM employees e
+    INNER JOIN employee_hierarchy eh
+        ON e.manager_id = eh.employee_id
+)
+
+SELECT
+    employee_name,
+    manager_name,
+    level,
+    hierarchy_path
+FROM employee_hierarchy
+ORDER BY level, employee_id;
+
+```
+
 ### Find the Top n Rows in SQL Using a Window Function and a CTE
 
 The task here is to return the top three highest paid employees in each department, together with their salary and department.
@@ -360,6 +485,9 @@ ORDER BY period;
 ```
 - LAG() returns the previous row’s value based on the ordering.
 - ORDER BY period ASC:  Defines the sequence of rows
+
+### employee_salary window function
+
 
 
 ## Tests
