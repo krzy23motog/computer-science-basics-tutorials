@@ -2,7 +2,7 @@
 
 ## End-to-End Data Architecture Design
 
-### Data Architecture patterns
+## Data Architecture patterns
 
 - __Medallion Architecture__ (also called Bronze → Silver → Gold or Multi-layer Lakehouse)
 

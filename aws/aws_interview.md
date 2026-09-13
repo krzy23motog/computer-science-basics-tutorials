@@ -1,5 +1,31 @@
 # AWS Interview questions
 
+## Table of contents
+
+- [How do you run serverless container on aws](#how-do-you-run-serverless-container-on-aws)
+  - [AWS App Runner](#aws-app-runner)
+  - [Amazon ECS with Fargate](#amazon-ecs-with-fargate)
+  - [AWS Lambda (Container Image mode)](#aws-lambda-container-image-mode)
+  - [Amazon EKS](#amazon-eks)
+  - [Comparison](#comparison)
+- [AWS Reference architectures](#aws-reference-architectures)
+  - [3-Tier Web Application](#3-tier-web-application-route-53-→-cloudfront-→-alb-→-ec2ecs-→-rds)
+  - [Serverless Web Application](#serverless-web-application-cloudfront-→-s3-→-api-gateway-→-lambda-→-dynamodb)
+  - [Modern Containerized Application](#modern-containerized-application-alb-→-ecsfargate-or-eks-→-rdsdynamodb-→-sqseventbridge)
+  - [Data Lake / Analytics Architecture](#data-lake--analytics-architecture-s3-→-glue-→-athenaredshift-→-lake-formation-→-quicksight)
+  - [Hybrid Cloud Architecture](#hybrid-cloud-architecture-data-center-→-direct-connectvpn-→-transit-gateway-→-vpcs)
+- [Kubernetes / EKS architecture](#explain-in-detail-and-with-examples-kubernetes--eks-architecture-including-multi-cluster-management-and-stateful-workloads)
+  - [1. Kubernetes Core Architecture](#1-kubernetes-core-architecture)
+  - [2. EKS-Specific Architecture](#2-eks-specific-architecture)
+  - [3. Multi-Cluster Management in Kubernetes](#3-multi-cluster-management-in-kubernetes)
+  - [4. Managing Stateful Workloads in Kubernetes](#4-managing-stateful-workloads-in-kubernetes)
+- [AWS Well-Architected Framework pillars](#list-and-explain-aws-well-architected-framework-pillars)
+  - [Operational Excellence](#operational-excellence)
+  - [Security](#security)
+  - [Reliability](#reliability)
+  - [Performance Efficiency](#performance-efficiency)
+  - [Cost Optimization](#cost-optimization)
+
 ## How do you run serverless container on aws
 
 ### AWS App Runner
@@ -95,7 +121,7 @@ Only use this if:
 | Full VPC control           | Limited    | ✅                   |
 | Enterprise flexibility     | Medium     | High                |
 
-## ADW Reference architectures
+## AWS Reference architectures
 
 ### 3-Tier Web Application: Route 53 → CloudFront → ALB → EC2/ECS → RDS
 
@@ -303,3 +329,148 @@ Persistent Volumes (PVs) and Persistent Volume Claims (PVCs):
 
 Example:
 - For a MySQL database, a StatefulSet will request a PVC for each pod in the set. Kubernetes will then provision the necessary EBS volumes for each pod, ensuring that even if the pod is rescheduled or restarted, the data is retained.
+
+## List and explain aws Well-Architected Framework pillars
+
+### Operational Excellence
+
+Run and monitor systems effectively; continuously improve processes and operations.
+
+Build systems that are easy to operate, monitor, troubleshoot, and improve.
+
+1. Prepare
+- Defining business and operational requirements
+- Creating runbooks and playbooks
+- Establishing monitoring and alerting
+- Planning for failures and operational events
+2. Operate
+- Monitoring application and infrastructure metrics
+- Collecting logs and traces
+- Setting up alerts
+- Automating deployments
+- Automating routine operational tasks
+3. Evolve
+- What went wrong?
+- Why did it happen?
+- Could we have detected it earlier?
+- Can we automate the recovery?
+
+### Security
+
+Protect data, systems, and resources through identity management, detection, infrastructure protection, and incident response.
+
+**Protect your systems and data by controlling access, detecting threats, protecting infrastructure, and responding to security incidents.**
+
+1. Identity and Access Management
+- Use **AWS Identity and Access Management (IAM)**.
+- Follow the **principle of least privilege**.
+- Avoid using the AWS root user for daily activities.
+- Use roles instead of long-term access keys where possible.
+2. Detection
+- Monitor AWS API activity.
+- Monitor logs and security events.
+- Create alerts for suspicious activity.
+- Detect unusual access patterns.
+3. Infrastructure Protection
+- Use network security controls.
+- Restrict inbound and outbound traffic.
+- Use private subnets for resources that don't need direct internet access.
+- Use security groups and network ACLs appropriately.
+- Protect applications from common network attacks.
+4. Data Protection
+- Data at Rest
+- Data in Transit
+5. Incident Response
+- Prepare an incident response plan.
+- Automate responses where possible.
+- Define who is responsible for each action.
+- Isolate compromised resources.
+- Investigate the incident.
+
+
+### Reliability
+
+Ensure workloads perform correctly and recover quickly from failures.
+
+The **Reliability** pillar focuses on ensuring that a workload:
+- Performs its intended function correctly
+- Can recover quickly from failures
+- Can handle changes in demand
+- Can meet business requirements consistently
+
+1. Foundations
+- Understand service quotas and limits.
+- Define operational requirements.
+- Establish monitoring and alerting.
+2. Workload Architecture
+- Avoid Single Points of Failure
+3. Change Management
+- Automate deployments.
+- Test changes before production.
+- Make small, reversible changes.
+- Monitor deployments.
+- Have a rollback strategy.
+- Use Infrastructure as Code.
+4. Failure Management
+- Anticipate failures
+- Detect failures
+- Respond to failures
+- Recover from failures
+- Prevent similar failures in the future
+
+
+### Performance Efficiency
+
+Use computing resources efficiently and adapt resources as requirements change.
+
+1. Selection: Choose AWS resources based on the actual workload requirements.
+  - CPU-intensive workload -> Compute-optimized instance
+  - Memory-intensive workload  -> Memory-optimized instance
+  - Choosing the Right Compute Resources
+    - Amazon EC2
+    - Amazon ECS
+    - Amazon EKS
+    - AWS Lambda
+    - AWS Fargate
+2. Review: Regularly review your architecture and resource choices.
+3. Monitoring
+  - Identify Bottlenecks
+4. Tradeoffs
+5. Evolution
+
+```
+Performance Efficiency =
+
+Choose the Right Resource
+          ↓
+Right-Size
+          ↓
+Monitor
+          ↓
+Find Bottlenecks
+          ↓
+Optimize
+          ↓
+Scale
+          ↓
+Review & Evolve
+
+```
+
+### Cost Optimization
+
+Deliver business value at the lowest appropriate cost.
+
+1. Practice Cloud Financial Management
+  - who, what, why
+  - cost allocation tags: application, team, project, environment, department
+2. Expenditure and Usage Awareness
+  - monitoring
+  - set budgets
+3. Cost-Effective Resources
+4. Manage Demand and Supply Resources
+  - remove unused resources
+  - savings plans, reservered, spot
+  - auto-scaling
+  - serverless
+5. Optimize Over Time
