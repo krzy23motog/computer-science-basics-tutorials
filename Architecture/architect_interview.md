@@ -1,3 +1,248 @@
+## Table of Contents
+
+- [How to make software achitecture decisions](#how-to-make-software-achitecture-decisions)
+- [List and explain software architecture practices](#list-and-explain-software-architecture-practices)
+- [Explain software architecture standards](#explain-software-architecture-standards)
+- [What is Architectural Strategy in software architecture?](#what-is-architectural-strategy-in-software-architecture)
+- [How do you create architectural vision and strategy?](#how-do-you-create-architectural-vision-and-strategy)
+- [How to create scalable, secure, and highly available SaaS products on cloud ?](#how-to-create-scalable-secure-and-highly-available-saas-products-on-cloud-)
+- [What are cloud-native design principles?](#what-are-cloud-native-design-principles)
+- [How to define architecture governance process?](#how-to-define-architecture-governance-process)
+- [How do I oversee implementation of large-scale software architecture?](#how-do-i-oversee-implementation-of-large-scale-software-architecture)
+- [How to ensure alignment between business needs and technical solutions?](#how-to-ensure-alignment-between-business-needs-and-technical-solutions)
+- [How do you provide technical strategy providing reliability and resiliency across our enterprise SaaS-based ecosystem](#how-do-you-provide-technical-strategy-providing-reliability-and-resiliency-across-our-enterprise-saas-based-ecosystem)
+- [how can I influence the architecture of our environments](#how-can-i-influence-the-architecture-of-our-environments)
+- [How to ensure 99.9%+ availability through proactive cloud system design, advanced netwoworking](#how-to-ensure-999-availability-through-proactive-cloud-system-design-advanced-netwoworking)
+- [How do I secure high-volume, high-volatility application environment, utilizing advanced networking and compute structures, in cloud hosted environments on AWS](#how-do-i-secure-high-volume-high-volatility-application-environment-utilizing-advanced-networking-and-compute-structures-in-cloud-hosted-environments-on-aws)
+- [How to move the organization from "firefighting" to a proactive culture through habits and systems supporting feature flagging, production readiness reviews, architectural decision records, and chaos engineering.](#how-to-move-the-organization-from-firefighting-to-a-proactive-culture-through-habits-and-systems-supporting-feature-flagging-production-readiness-reviews-architectural-decision-records-and-chaos-engineering)
+- [Define SLIs, SLOs, and error budgets that balance feature velocity with platform stability, supporting a shift to service ownership.](#define-slis-slos-and-error-budgets-that-balance-feature-velocity-with-platform-stability-supporting-a-shift-to-service-ownership)
+- [HA on AWS](#ha-on-aws)
+
+## How to make software achitecture decisions
+
+1. Product or business vision, long term
+2. Requirements:
+  - functional
+  - constraints (budget, team expertise, deadlines, regulatory)
+  - current issues
+  + system
+3. Establish decision criteria
+  - reliability  - weight 30%
+  - development speed - 20%
+  - cost - 10%
+4. Consider alternatives: every important decision, write down at least 2–3 realistic alternatives
+  - example: How should services communicate?
+    - REST / HTTP
+    - gRPC
+    - Message broker / events
+5. Think about consequences: benefits, cost, risks
+6. Make the decision reversible when possible
+7. Record the decision = Architecture Decision Record (ADR)
+   - Decision
+   - Status
+   - Context
+   - Options
+   - Decition
+   - Reasons
+   - Consequences
+   - Revisit when
+8. Validate the risky assumptions = POC
+9. Look at the system as a whole
+10. Revisit decisions as the system evolves
+
+
+## List and explain software architecture practices
+
+Repeatable techniques teams use to design, evaluate, communicate, and evolve a system's architecture.
+
+1. __Architecture Decision Records__ (ADRs), Architecture reviews
+  - Explicitely analyze __system requirements__
+  - Architecture __trade-off__ analysis = Evaluate competing architectural options
+2. __Architecture principles__
+  - Prefer managed infrastructure where practical.
+  - Services should own their data.
+  - APIs must be backward compatible.
+  - Minimize synchronous dependencies.
+  - Security is enforced at service boundaries.
+  3. __Interface and contract design__
+  4. API-first design
+  12. __Observability__ by design
+5. Turn architectural requirements into __automated checks with observability__
+  - API p99 latency < 300 ms
+  - Critical service availability > 99.95%
+  - Maximum acceptable cloud cost = $20k/month
+6.  __Domain modeling__: Understand the business domain before deciding service/module boundaries
+7. POC
+8. Performance modeling and __capacity planning__: Estimate how the system behaves under expected load
+  - What is peak traffic?
+  - What is the expected growth?
+  - Where is the bottleneck?
+  - What happens during a traffic spike?
+9. __Design for failure__
+  - Timeouts, Retries, Circuit breakers
+  - Rate limiting
+  - Bulkheads
+  - Replication, Failover
+  - Backups, Disaster recovery
+10. Deployment architecture
+11. Evolutionary architecture
+12. Technical-debt management
+
+## Explain software architecture standards
+
+A software architecture standard is an agreed-upon rule, guideline, specification, or framework that tells an organization how systems should be designed or what properties they must satisfy.
+
+```
+Architecture principles
+        ↓
+Architecture standards
+        ↓
+Architecture patterns
+        ↓
+Design decisions
+        ↓
+Implementation
+```
+
+## What is Architectural Strategy in software architecture?
+
+In software architecture, an architectural strategy is the set of deliberate, high-level decisions and principles that guide how a software system will be structured, evolved, and operated to achieve its business and technical goals.
+
+Business goals → Architectural strategy → Architectural decisions → Architecture → Implementation
+
+Architecture describes the structure and relationships of the system.
+
+Architectural strategy describes the direction and reasoning used to create and evolve that architecture.
+
+## How do you create architectural vision and strategy?
+
+Create a clear architectural direction that lets product, engineering, security, operations, and leadership make consistent decisions as the portfolio grows.
+
+1. Start with the business vision:
+   ```
+   Build a secure, interoperable, scalable healthcare SaaS platform that enables rapid delivery of clinical and administrative capabilities while maintaining strong patient-data protection, reliability, and regulatory compliance.
+   ```
+2. Translate that into measurable architectural outcomes:
+  - Faster product delivery
+  - Higher availability and resilience
+  - Easier interoperability
+  - Lower cost of operating the platform
+3. Understand your current architecture
+4. Define architectural principles
+  - API-first interoperability
+  - Domain ownership over technical ownership
+5. Define the target architectural vision
+6. Turn the vision into strategic themes
+  - Platform modernization
+  - Domain architecture
+  - Data architecture
+7. Create an architectural roadmap
+8. Establish architecture governance without creating bureaucracy
+  - Architecture principles
+  - Reference architectures
+  - Architecture decision records
+  - Architecture fitness measures
+
+## How to create scalable, secure, and highly available SaaS products on cloud ?
+
+1. Define what "scale" or system requirements actually means
+  - Number of tenants
+  - Number of users
+  - Concurrent users
+  - Requests/second
+  - Peak traffic patterns
+  - Data volume and growth
+  - availability
+  - RTO/RPO
+  - API latency
+2. Design the SaaS tenancy model deliberately
+  - shared app vs tenant app
+  - shared db vs tenant db
+  - isolation model based on: Security, Customer requirements, Compliance
+3. Build a stateless application tier
+4. Decompose around business capabilities: Patient Management, Scheduling, Clinical Workflow
+   - Design for horizontal scaling
+5. Use asynchronous architecture for scale: separate request handling from work execution
+6. Treat the database as a scaling concern
+  - Make the database resilient
+7. Introduce caching strategically
+8. Make resilience part of the design
+  - Separate critical and non-critical workloads
+9. Build multi-layer availability
+  - compute: multi-aZ, Autoscaling
+  - data: replication, backups, DR
+  - network: redundancy, failover
+10. Build security into the platform
+11. Create a cloud platform instead of letting every team build infrastructure
+```
+                  Product Teams
+       ┌────────────┬────────────┐
+       │            │            │
+    Product A    Product B    Product C
+       │            │            │
+       └────────────┼────────────┘
+                    │
+             Developer Platform
+                    │
+       ┌────────────┼────────────┐
+       │            │            │
+     CI/CD       Security     Observability
+       │            │            │
+       └────────────┼────────────┘
+                    │
+              Cloud Platform
+                    │
+       ┌────────────┼────────────┐
+       │            │            │
+    Compute       Data        Network
+```
+12. Automate everything repeatable
+13. Observability
+14. SLOs
+15. CI/CD
+
+## What are cloud-native design principles?
+
+- Design for failure
+- Prefer horizontal scalability
+- Keep application services stateless
+- Automate everything repeatable
+- Design for elasticity
+- Decouple components
+- Use asynchronous processing where appropriate
+- Make APIs and contracts explicit
+- Observability
+- Security as a cross-cutting architectural concern
+- Externalize configuration
+- Design for independent deployment
+- Make data architecture intentional: data ownership, consistency, transactions, caching, paritioning, 
+- CI/CD
+
+## How to define architecture governance process?
+
+1. Define the purpose and scope
+  - Start by writing a one-page Architecture Governance Charter.
+  - Purpose: Ensure that significant technology decisions are aligned with business objectives, architectural principles, security, compliance, and operational requirements.
+  - Scope: Decisions involving Product architecture, Application architecture, Data architecture
+2. Define architectural principles
+3. Define decision rights
+  - Clearly establish who decides what.
+  ```
+  Decision	              | Product Team	| Architect	Architecture Council
+  Internal implementation	| ✅		
+  Local framework	        | ✅		
+  API design	            | ✅	           | Review if significant	
+  Database technology	    | ✅	            Review if strategic	
+  New shared platform		  | ✅	            |✅
+  Enterprise data model		| ✅	            |✅
+  Major deployment model	|	✅	            |✅
+  Technology standard			|                | ✅
+  ```
+4. Create a risk-based review model
+5. Establish an Architecture Decision Record process
+6. Establish architecture review criteria
+7. Establish architecture review criteria
+
 ## How do I oversee implementation of large-scale software architecture?
 
 - Define and Communicate the Architectural Vision
@@ -290,100 +535,6 @@ AWS CloudTrail: Enable CloudTrail to capture all API activity across your AWS ac
 - throughput
 - latency
 - correctness
-
-## Explain in detail and with examples Kubernetes / EKS architecture, including multi-cluster management and stateful workloads.
-
-Kubernetes (K8s) is an open-source container orchestration platform that automates the deployment, scaling, and management of containerized applications. Amazon EKS (Elastic Kubernetes Service) is a fully managed Kubernetes service offered by AWS, which simplifies the operation of Kubernetes clusters in the cloud.
-
-To fully understand Kubernetes architecture, including multi-cluster management and stateful workloads, let’s break it down in detail:
-
-### 1. Kubernetes Core Architecture
-
-At a high level, Kubernetes is designed to run containerized applications across a cluster of machines (physical or virtual). The architecture consists of two main components:
-
-- Control Plane: Manages the state of the cluster (e.g., scheduling, scaling, maintaining desired state).
-- Worker Nodes: Run containerized applications (pods) and are responsible for executing application workloads.
-
-Control Plane Components: These components are responsible for making global decisions about the cluster (e.g., scheduling, managing workloads) and ensuring that the cluster is healthy and meets the desired state.
-- API Server (kube-apiserver):
-  - The API server is the front-end for the Kubernetes control plane. It exposes the Kubernetes API, allowing users, components, and external clients to interact with the cluster.
-  - Example: The kubectl command-line tool communicates with the API server to deploy, manage, and monitor applications.
-- Controller Manager (kube-controller-manager):
-  - The controller manager ensures that the desired state of the cluster matches the actual state. It includes controllers for handling tasks like node management, deployment updates, etc.
-  - Example: If a pod fails or becomes unhealthy, the controller will attempt to create a new pod to maintain the desired number of replicas.
-- Scheduler (kube-scheduler): The scheduler assigns pods to specific nodes based on resource requirements and availability.
-  - Example: When a new pod is created, the scheduler will decide which node to run the pod on, considering factors like resource utilization (CPU, memory), affinity rules, and node health.
-- etcd: is a distributed key-value store used to store all cluster data, including configurations, secrets, and the current state of the system (e.g., pod configurations, deployment information).
-  - Example: When you apply a deployment via kubectl, Kubernetes stores the configuration in etcd, and the system works to match the desired state.
-
-Worker Node Components:
-- Worker nodes are the machines where your containerized applications (pods) run. Each worker node has the following key components:
-  - Kubelet: The kubelet is an agent running on each worker node that ensures containers are running in a pod.
-  - Example: The kubelet ensures that the necessary containers in a pod are running and healthy by interacting with the container runtime (e.g., Docker, containerd).
-- Kube Proxy:
-  - The kube proxy is responsible for network routing and load balancing for services. It manages the network rules on each node to allow communication between pods and services.
-  - Example: If there are two pods running a web application, the kube proxy ensures traffic is routed correctly to the right pod based on the service’s configuration.
-- Container Runtime:
-  - The container runtime (e.g., Docker, containerd) is responsible for running containers on the worker node.
-  - Example: When a pod is scheduled on a node, the container runtime ensures that the container(s) defined in the pod’s specification are created and started.
-
-### 2. EKS-Specific Architecture
-
-AWS provides EKS as a fully managed Kubernetes service, where much of the control plane is handled by AWS. When you use EKS, AWS manages the Kubernetes control plane, including the API server, controller manager, and scheduler. This reduces the operational overhead, but you still manage the worker nodes (either EC2 instances or managed node groups).
-
-- Control Plane Managed by AWS: In EKS, the Kubernetes control plane (API server, scheduler, controller manager, etc.) is managed by AWS, ensuring it is highly available, scalable, and patched. AWS takes care of the heavy lifting, such as cluster upgrades and failover.
-- Worker Nodes: You can choose to run your worker nodes as EC2 instances or use EKS Managed Node Groups, where AWS automatically manages the EC2 instances on your behalf.
-
-Example:
-- EKS Cluster: You create a Kubernetes cluster using EKS, which provisions the control plane on your behalf. You then deploy worker nodes (either EC2 instances or managed node groups) into your VPC (Virtual Private Cloud).
-- Multi-AZ Setup: EKS automatically distributes the control plane across multiple availability zones (AZs) for high availability and fault tolerance.
-- Node Scaling: If your cluster requires more capacity, you can either scale the worker nodes manually or use EKS Auto Scaling to dynamically adjust the number of worker nodes based on demand.
-
-### 3. Multi-Cluster Management in Kubernetes
-
-In larger organizations, a single Kubernetes cluster may not meet the needs of all workloads or teams. In such cases, multi-cluster management becomes necessary, especially in distributed applications, global deployments, or for disaster recovery purposes.
-
-Why Use Multi-Cluster Setup?
-- Fault Isolation: Isolate workloads and mitigate the impact of failures (e.g., if one cluster fails, the others remain unaffected).
-- Geographic Distribution: Deploy applications closer to end-users to reduce latency by having clusters in multiple regions or availability zones.
-- Resource Management: Different clusters can be used for different environments (e.g., production, staging, testing) or different teams within an organization.
-
-Managing Multiple Clusters:
-- Kubernetes Federation:
-  - Kubernetes Federation allows you to manage multiple clusters as if they were a single entity. You can federate resources across clusters, synchronize configurations, and deploy workloads across clusters.
-  - Example: You might deploy your frontend in one cluster located in the US and your backend in another cluster located in Europe for better user experience.
-- Cross-Cluster Communication:
-  - Use Istio or Linkerd for service mesh capabilities, enabling secure and efficient communication between services in different clusters.
-  - Example: A service in Cluster A might need to communicate with a service in Cluster B. With Istio, you can configure the mesh to route traffic securely between clusters.
-- Centralized Management Tools:
-  - Use AWS EKS Anywhere or Rancher for centralized multi-cluster management. These tools provide a unified interface to manage clusters across different environments.
-  - Example: With Rancher, you can monitor, deploy, and manage multiple Kubernetes clusters across different cloud providers or on-premises environments.
-
-Example: Managing Multiple EKS Clusters:
-- Cluster in Different Regions: Deploy multiple EKS clusters in different AWS regions to reduce latency for users in different geographic locations.
-- Cross-Cluster Communication: Use Service Mesh like Istio to allow services in Cluster 1 (US West) to communicate with services in Cluster 2 (US East).
-
-### 4. Managing Stateful Workloads in Kubernetes
-
-Kubernetes is commonly associated with stateless applications, but it also provides powerful features to support stateful workloads that need persistent storage.
-
-StatefulSet:
-- StatefulSet is a Kubernetes controller designed specifically for stateful applications. It ensures the ordering and uniqueness of pods, which is critical for applications that need stable network identities and persistent storage.
-- Key Features:
-  - Stable Persistent Storage: Ensures that each pod gets a persistent volume (PV) that survives pod restarts.
-  - Stable Network Identity: Each pod in a StatefulSet gets a unique DNS hostname, which is important for applications like databases that need to track their peers.
-  - Ordered Deployment and Scaling: Pods in a StatefulSet are deployed in a specific order (e.g., Pod 1 is created before Pod 2) and are terminated in the reverse order.
-
-Example Use Case:
-- A StatefulSet can be used to deploy a MySQL or Cassandra cluster. These databases require stable network identities for replication and persistent volumes for data storage. StatefulSets provide the necessary guarantees for such workloads.
-
-Persistent Volumes (PVs) and Persistent Volume Claims (PVCs):
-- Kubernetes provides Persistent Volumes (PVs) and Persistent Volume Claims (PVCs) to manage storage for stateful workloads.
-- PVs are abstractions that represent physical storage in the cluster, which could be backed by AWS services like EBS (Elastic Block Store), EFS (Elastic File System), or EFS CSI.
-- PVCs are requests for storage made by users or pods. When a StatefulSet is created, it requests persistent storage through PVCs.
-
-Example:
-- For a MySQL database, a StatefulSet will request a PVC for each pod in the set. Kubernetes will then provision the necessary EBS volumes for each pod, ensuring that even if the pod is rescheduled or restarted, the data is retained.
 
 
 
