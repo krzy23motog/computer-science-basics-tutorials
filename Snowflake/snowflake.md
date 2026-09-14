@@ -118,9 +118,110 @@ INSERT INTO transformed_data (user_id, full_name, age_category)
   FROM users;
 ```
 
+Correct CDC query:
+```
+MERGE INTO RAW.CUSTOMER AS tgt
+USING
+(
+    SELECT
+        CUSTOMER_ID,
+        CUSTOMER_NAME,
+        EMAIL,
+        STATUS,
+        UPDATED_AT,
+        SOURCE_SYSTEM,
+        FILE_NAME,
+        LOAD_BATCH_ID,
+        LOAD_TS,
+        OPERATION
+    FROM
+    (
+        SELECT
+            CUSTOMER_ID,
+            CUSTOMER_NAME,
+            EMAIL,
+            STATUS,
+            UPDATED_AT,
+            SOURCE_SYSTEM,
+            FILE_NAME,
+            LOAD_BATCH_ID,
+            LOAD_TS,
+            OPERATION,
+
+            ROW_NUMBER() OVER
+            (
+                PARTITION BY CUSTOMER_ID
+                ORDER BY
+                    UPDATED_AT DESC,
+                    LOAD_TS DESC
+            ) AS RN
+
+        FROM RAW.STG_CUSTOMER
+    ) AS ranked
+
+    WHERE RN = 1
+) AS src
+
+ON tgt.CUSTOMER_ID = src.CUSTOMER_ID
+
+
+-- 1. DELETE
+WHEN MATCHED
+     AND src.OPERATION = 'D'
+THEN
+    DELETE
+
+
+-- 2. UPDATE
+WHEN MATCHED
+     AND src.OPERATION IN ('I', 'U')
+     AND src.UPDATED_AT > tgt.UPDATED_AT
+THEN
+    UPDATE SET
+        tgt.CUSTOMER_NAME = src.CUSTOMER_NAME,
+        tgt.EMAIL         = src.EMAIL,
+        tgt.STATUS        = src.STATUS,
+        tgt.UPDATED_AT    = src.UPDATED_AT,
+        tgt.SOURCE_SYSTEM = src.SOURCE_SYSTEM,
+        tgt.FILE_NAME     = src.FILE_NAME,
+        tgt.LOAD_BATCH_ID = src.LOAD_BATCH_ID,
+        tgt.LOAD_TS       = src.LOAD_TS
+
+
+-- 3. INSERT
+WHEN NOT MATCHED
+     AND src.OPERATION IN ('I', 'U')
+THEN
+    INSERT
+    (
+        CUSTOMER_ID,
+        CUSTOMER_NAME,
+        EMAIL,
+        STATUS,
+        UPDATED_AT,
+        SOURCE_SYSTEM,
+        FILE_NAME,
+        LOAD_BATCH_ID,
+        LOAD_TS
+    )
+    VALUES
+    (
+        src.CUSTOMER_ID,
+        src.CUSTOMER_NAME,
+        src.EMAIL,
+        src.STATUS,
+        src.UPDATED_AT,
+        src.SOURCE_SYSTEM,
+        src.FILE_NAME,
+        src.LOAD_BATCH_ID,
+        src.LOAD_TS
+    );
+
+```
+
 ### loading unstructured data
 
-You can load json, xml, parquet etc data formats including nested data, arrays etc..
+You can load json, xml, parquet etc. data formats including nested data, arrays etc..
 
 To do that you need to add 'file format' to the COPY command.
 
@@ -459,14 +560,23 @@ UNDROP TABLE my_table BEFORE (STATEMENT => '2023-01-05 10:00:00');
 * __Permanent__: 'CREATE TABLE'. default, normal type with time travel and fail-safe
 * __Transient__: 'CREATE TANSIENT TABLE'. No fail-safe, no time-travel. It is used where "data persistence" is required but doesn't need "data retention" for a longer period.
 * __Temporary__: 'CREATE TEMPORARY TABLE'. No fail-safe. Exists only in __current session__ i.e. other users or sessions do not see it. Mostly used for transitory data like ETL/ELT
-* __Dynamic__: 'CREATE DYNAMIC TABLE': Continously materlizes the results of the query you provide.
-
+* __Dynamic__: 'CREATE DYNAMIC TABLE': Continously materlizes the results of the query you provide. This is a dataset in my data pipeline. Please continuously maintain it based on this transformation. Each dynamic table can represent a transformation layer
 
 ## View types <a id="viewtypes"></a>
 
 * __Standard View__
 * __Secure View__: accessed only by authorized users
 * __Materialized View__: These views store the result from the main source using filter conditions. Materialized view is auto-refreshed
+
+Snowflake maintains the materialized result so queries can access the precomputed data instead of repeatedly calculating the aggregation:
+```
+CREATE MATERIALIZED VIEW MV_CUSTOMER_SALES AS
+SELECT
+    CUSTOMER_ID,
+    SUM(ORDER_AMOUNT) AS TOTAL_SALES
+FROM RAW.ORDERS
+GROUP BY CUSTOMER_ID;
+```
 
 ### Snowflake Dynamic Tables vs Materialized Views
 
@@ -1179,7 +1289,8 @@ No Locks on Reads
 
 ### Explain the Cloud Services layer.
 
-The Cloud Services layer manages metadata, authentication, query optimization, transactions, and orchestration in Snowflake. It does not store data or run user compute-heavy queries.
+The Cloud Services layer manages metadata, authentication, query optimization, transactions, and orchestration in Snowflake. 
+It does not store data or run user compute-heavy queries.
 
 ### How big is a micro-partition?
 
@@ -1450,6 +1561,8 @@ After running the query:
   - Time spent per operator
 
 This is where real performance tuning happens.
+
+Query Profile is not stored as a normal table. It's primarily a UI visualization of execution statistics for a query.
 
 See https://www.chaosgenius.io/blog/snowflake-query-optimization-query-profile/
 
@@ -1755,6 +1868,45 @@ Use Snowpipe Streaming: Kafka → Connector → Snowpipe Streaming API → Snowf
   - lineage
 4. Cost & Resource Governance
 5. Operational Governance (process + tooling)
+
+### Use snowflake, aws, dbt, python to develop best-in-class data platform to ingest, process, and store enterprise data, enabling business teams to extract meaningful insights
+
+A strong Snowflake + AWS + dbt + Python enterprise data platform should be designed around a __layered architecture__ with clear __ownership__, __automated quality controls__, __governance__, and __self-service__ analytics.
+
+1. Ingestion layer — AWS + Python
+- AWS DMS for database replication/CDC.
+- AWS Lambda for lightweight API and event-driven ingestion.
+- ECS/Fargate for heavier Python ingestion workloads.
+- Amazon S3 as the immutable landing zone.
+- EventBridge/SQS for event-driven orchestration and decoupling.
+- Ingestion pipline should capture: source_system
+  - source_object
+  - ingestion_timestamp
+  - batch_id
+  - pipeline_version
+  - schema_version
+  - file_name
+2. Storage — Snowflake
+  - raw
+  - staging
+  - core (Create canonical enterprise entities: customer, account)
+  - marts (final):  business-facing dimensional and analytical models
+3. Transformation — dbt
+  - SQL transformations
+  - Incremental models
+  - Snapshots
+  - Data tests
+  - Documentation
+  - Lineage
+4. Data quality: Treat quality as a first-class platform capability.
+5. Orchestration: Separate orchestration from transformation.
+6. Governance and security
+  - build governance into the platform
+  - Snowflake RBAC, AWS IAM, Encryption at rest and in transit, Masking policies, Data classification
+7. Infrastructure as code and CI/CD
+  - Everything should be reproducible.
+8. Observability
+9. Business-facing semantic layer
 
 ### How do Streams work internally?
 
