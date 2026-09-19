@@ -7,14 +7,14 @@
 - __outer__ joins return all the rows in one table, plus matching rows in the other table(s). 
 - The exception is __FULL JOIN__, which returns all rows from __both tables__.
 
-- INNER JOIN: Returns only matching rows from both tables
+- JOIN = INNER JOIN: Returns only matching rows from both tables
 - LEFT JOIN = LEFT OUTER JOIN: Returns all rows from the left table + matches from the right
 - FULL OUTER JOIN: Returns everything from both tables, matched where possible
 
 ```
 Join                | What it returns
 --------------------+--------
-INNER JOIN          | Only matching rows
+INNER JOIN          | Only matching rows = JOIN
 FULL OUTER JOIN	    | All rows from both tables
 LEFT JOIN           | All rows from the left table + matches from right
 RIGHT JOIN	        | All rows from the right table + matches from left
@@ -488,7 +488,51 @@ ORDER BY period;
 
 ### employee_salary window function
 
+### Merge -1 : different raw table
 
+Rows have been loaded to new table: raw_1 (employee_id, name, salary).
+Create sql query that will merge them to curated table (employee_id, name, salary). 
+Handle inserts and updates
+
+```
+MERGE INTO curated AS c
+USING raw_1 AS r
+ON c.employee_id = r.employee_id
+
+WHEN MATCHED THEN
+    UPDATE SET
+        c.name = r.name,
+        c.salary = r.salary
+
+WHEN NOT MATCHED THEN
+    INSERT (employee_id, name, salary)
+    VALUES (r.employee_id, r.name, r.salary);
+```
+
+### Merge - 2: CDC
+
+Rows have been loaded to cdc table: raw_cdc (employee_id, name, salary, operation).
+Create sql query that will merge them to curated table (employee_id, name, salary). 
+Handle inserts, updates, deletes
+
+```
+MERGE INTO curated AS c
+USING raw_cdc AS r
+ON c.employee_id = r.employee_id
+
+WHEN MATCHED AND r.operation = 'D' THEN
+    DELETE
+
+WHEN MATCHED AND r.operation = 'U' THEN
+    UPDATE SET
+        c.name = r.name,
+        c.salary = r.salary
+
+WHEN NOT MATCHED AND r.operation = 'I' THEN
+    INSERT (employee_id, name, salary)
+    VALUES (r.employee_id, r.name, r.salary);
+
+```
 
 ## Tests
 
