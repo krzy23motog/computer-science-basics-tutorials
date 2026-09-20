@@ -1,11 +1,12 @@
 # Python 3
 
 # Table of Contents
-- [basics](#basics)
-- [advanced](#advanced)
-  - [strong typing](#strongtyping)
-  - [oop](#oop)
-- [interview questions](#interview)
+- [Python basics](#basics)
+- [Advanced](#advanced)
+  - [Strong typing](#strongtyping)
+  - [Python OOP](#oop)
+- [Python interview questions](#interview)
+- [Python data engineering interview questions](#data-engineering-interview)
 
 ## Python basics <a id="basics"></a>
 
@@ -1173,7 +1174,7 @@ MyClass.my_class_method()
 ```
 
 
-## Python Interview questions <a id="interview"></a>
+## Python interview questions <a id="interview"></a>
 
 ### Is Python compiled or interpreted?
 
@@ -1412,16 +1413,270 @@ print(list(result))
 
 ### Explain slicing in Python with negative indices.
 
-### What are Python decorators and how do they work?
-
-### Explain generators and yield keyword.
-
 ### What is a lambda function? When to use it?
 
 
 
 
-## Python data engineering python interview questions
+### What is the difference between a list, tuple, set, and dictionary?
+
+- List: Ordered, mutable, allows duplicates.
+- Tuple: Ordered, immutable, allows duplicates.
+- Set: Unordered collection of unique elements.
+- Dictionary: Mutable key-value mapping with unique keys.
+
+### What is a mutable default argument problem?
+
+Default arguments are evaluated only once, when the function is defined.
+The same list is reused between calls.
+
+```
+def add_item(item, items=[]):
+    items.append(item)
+    return items
+
+print(add_item(1))  # [1]
+print(add_item(2))  # [1, 2]
+```
+
+fix:
+```
+def add_item(item, items=None):
+    if items is None:
+        items = []
+
+    items.append(item)
+    return items
+```
+
+### What is a generator expression?
+
+A generator is a function that produces values one at a time, instead of creating and returning all the values at once
+
+```
+def count_up_to(n):
+    i = 1
+
+    while i <= n:
+        yield i
+        i += 1
+```
+
+use a generator to yield database rows one at a time, while making sure the connection is closed when you're done:
+
+```
+import sqlite3
+
+def get_users():
+    connection = sqlite3.connect("users.db")
+
+    try:
+        cursor = connection.execute(
+            "SELECT id, name, email FROM users"
+        )
+
+        for row in cursor:
+            yield row
+
+    finally:
+        connection.close()
+```
+
+The interesting thing with a generator is that finally doesn't necessarily execute immediately when the function reaches yield.
+
+finally runs when the generator is closed or finishes:
+- You consume all rows
+- You explicitly close the generator
+  ```
+  users = get_users()
+
+  print(next(users))
+  print(next(users))
+
+  users.close()
+  ```
+- An exception happens
+
+### What are decorators?
+
+A decorator is a callable that modifies or extends the behavior of another function without changing its source code.
+
+```
+def logger(func):
+    def wrapper(*args, **kwargs):         // it can be any name, not "wrapper"
+        print("Calling function")
+        result = func(*args, **kwargs)
+        print("Function completed")
+        return result
+
+    return wrapper
+
+
+@logger
+def greet(name):
+    print(f"Hello {name}")
+
+greet("Alice")
+```
+
+output:
+```
+Calling function
+Hello Alice
+Function completed
+```
+
+### What is the difference between __new__ and __init__ and others ?
+
+- __new__ creates and returns the instance.
+- __init__ initializes an already-created instance.
+- __str__ — human-friendly representation
+- __repr__ — developer/debug representation
+- __lt__, __le__, __eq__ etc. - comparison
+- __add__, __sub__, __mul__ - arithmetic
+- __len__, __getitem__ - container
+
+```
+class User:
+    def __new__(cls, name):
+        print("__new__")
+        return super().__new__(cls)
+
+    def __init__(self, name):
+        print("__init__")
+        self.name = name
+
+user = User("Alice")
+
+// returns
+__new__
+__init__
+
+```
+
+### async/await
+
+async/await is mainly used for concurrent I/O-bound work—things like API calls, database queries, network requests, and reading from sockets.
+
+```
+import asyncio
+
+async def task(name):
+    print(f"Starting {name}")
+    await asyncio.sleep(2)
+    print(f"Finished {name}")
+
+// Calling it doesn't execute the function normally: result is a coroutine object.
+result = hello()
+print(result)
+
+// To actually execute it, you need to await it from another async function:
+    await hello()
+```
+
+Async does NOT automatically mean parallel. It means concurrency:
+- Concurrency: Multiple tasks make progress during overlapping periods.
+- Parallesl: Multiple pieces of work literally execute simultaneously, typically on different CPU cores
+
+#### The event loop: is the central mechanism behind asyncio
+
+```
+             Event Loop
+                 |
+       +---------+---------+
+       |         |         |
+     Task A    Task B    Task C
+       |         |         |
+    waiting   running    waiting
+       |         |
+       +----->---+
+          switch
+```
+
+#### asyncio.gather()
+
+asyncio.gather() is used when you have multiple async tasks and want to run them concurrently and wait for all of them to finish.
+
+```
+import asyncio
+
+async def task(name):
+    print(f"Starting {name}")
+    await asyncio.sleep(2)          // do not use time.sleep(5) - it will block thread
+    print(f"Finished {name}")
+
+
+async def main():
+    result = await asyncio.gather(
+        task("A"),
+        task("B"),
+        task("C"),
+        return_exceptions=True      // exceptions are returned in results instead of immediately being raised to the caller, but other sub-tasks continue
+    )
+    print( result )                 // results in the order you supplied them.
+
+
+asyncio.run(main())
+
+// will print
+['Alice', ['Order 1', 'Order 2']]
+```
+
+The results are returned in the same order you passed the coroutines.
+
+
+Without asyncio.gather - tasks are still being awaited sequentially:
+```
+// BAD - synchronousely
+async def main():
+    await task1()
+    await task2()
+    await task3()
+
+```
+
+#### Async HTTP example
+
+```
+import asyncio
+import aiohttp
+
+async def fetch(session, url):
+    async with session.get(url) as response:
+        return await response.text()
+
+async def main():
+    async with aiohttp.ClientSession() as session:
+        results = await asyncio.gather(
+            fetch(session, "https://example.com"),
+            fetch(session, "https://example.org"),
+        )
+        for result in results:
+            print(len(result))
+
+asyncio.run(main())
+```
+
+
+### Coroutine vs Task
+
+A coroutine is produced when you call an async def function:
+```
+async def work():
+    await asyncio.sleep(1)
+coro = work()
+```
+
+A Task schedules a coroutine to run on the event loop:
+```
+task = asyncio.create_task(work())
+```
+
+
+
+### What is a closure in Python?
+
+## Python data engineering interview questions <a id="data-engineering-interview"></a>
 
 ### Difference between list and tuple?
 
@@ -1881,8 +2136,3 @@ Spark DataFrame:
 | **Fault Tolerance**  | No built-in fault tolerance                       | Built-in fault tolerance with RDD lineage                         |
 | **Memory & Storage** | In-memory only                                    | Memory and disk-based, distributed storage                        |
 | **Integration**      | Python data science ecosystem                     | Spark ecosystem, big data tools, cloud services                   |
-
-
-
-
-
